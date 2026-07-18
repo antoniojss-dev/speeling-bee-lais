@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Spelling Bee — Treino de Soletração</title>
+<style>
+/* ============================================================
+   SPELLING BEE • TREINO — Tema "Colmeia à Noite"
+   Paleta: mel/âmbar sobre marrom-escuro quente, elegante.
+   ============================================================ */
+:root{
+  --ink:#171208;          /* fundo principal (quase preto quente) */
+  --panel:#241C0E;        /* cartões */
+  --panel-2:#2F2513;      /* cartões elevados */
+  --line:#3E3219;         /* bordas sutis */
+  --honey:#F5B301;        /* âmbar principal */
+  --honey-2:#FFCE45;      /* âmbar claro */
+  --honey-deep:#B57F00;   /* âmbar profundo */
+  --cream:#F7EEDC;        /* texto principal */
+  --muted:#A8996F;        /* texto secundário */
+  --ok:#7DC873;           /* acerto */
+  --ok-deep:#2E4D2A;
+  --bad:#E5604C;          /* erro */
+  --bad-deep:#4D231C;
+  --radius:18px;
+  --font-body:'Segoe UI','SF Pro Text',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --font-display:'Avenir Next','Segoe UI',Futura,'Trebuchet MS',sans-serif;
+  --font-mono:ui-monospace,'SF Mono','Cascadia Mono',Consolas,'Roboto Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font-body);
+  background:var(--ink);
+  color:var(--cream);
+  line-height:1.5;
+  /* padrão sutil de colmeia no fundo */
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(245,179,1,.10), transparent 60%),
+    repeating-linear-gradient(30deg, transparent 0 34px, rgba(245,179,1,.025) 34px 35px),
+    repeating-linear-gradient(-30deg, transparent 0 34px, rgba(245,179,1,.025) 34px 35px),
+    repeating-linear-gradient(90deg, transparent 0 34px, rgba(245,179,1,.02) 34px 35px);
+  background-attachment:fixed;
+}
+.app{max-width:560px;margin:0 auto;padding:16px 16px 48px;min-height:100%}
+
+/* ---------- utilidades ---------- */
+.hidden{display:none !important}
+button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--honey-2);outline-offset:2px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+/* ---------- cabeçalho ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 18px}
+.brand{display:flex;align-items:center;gap:12px}
+.hexlogo{
+  width:46px;height:52px;display:grid;place-items:center;font-size:24px;
+  background:linear-gradient(160deg,var(--honey-2),var(--honey-deep));
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  color:#1c1505;
+}
+.brand h1{font-family:var(--font-display);font-size:19px;font-weight:800;letter-spacing:.4px;line-height:1.15}
+.brand small{display:block;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:2.5px;text-transform:uppercase}
+.iconbtn{
+  width:44px;height:44px;border-radius:12px;font-size:19px;display:grid;place-items:center;
+  background:var(--panel);border:1px solid var(--line);transition:transform .12s;
+}
+.iconbtn:active{transform:scale(.93)}
+
+/* ---------- cartões e seções ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.section-label{
+  font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--honey);margin-bottom:10px;
+}
+
+/* ---------- recorde ---------- */
+.record{display:flex;align-items:baseline;justify-content:space-between}
+.record .pts{font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--honey-2)}
+.record .pts span{font-size:14px;color:var(--muted);font-weight:600;margin-left:4px}
+
+/* ---------- seleção de nível ---------- */
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.level{
+  border:2px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center;
+  background:var(--panel-2);transition:border-color .15s,transform .12s;
+}
+.level:active{transform:scale(.96)}
+.level .lv-ico{font-size:22px}
+.level .lv-name{font-family:var(--font-display);font-weight:800;font-size:14px;margin-top:2px}
+.level .lv-desc{font-size:10.5px;color:var(--muted);line-height:1.3;margin-top:2px}
+.level.sel{border-color:var(--honey);background:linear-gradient(180deg,rgba(245,179,1,.14),rgba(245,179,1,.05))}
+.review-btn{
+  width:100%;margin-top:8px;padding:12px;border-radius:14px;border:2px dashed var(--line);
+  background:var(--panel-2);font-weight:700;font-size:14px;color:var(--cream);
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .15s;
+}
+.review-btn.sel{border-color:var(--honey);border-style:solid;background:linear-gradient(180deg,rgba(245,179,1,.14),rgba(245,179,1,.05))}
+.review-btn .count{
+  background:var(--bad);color:#fff;border-radius:999px;font-size:11px;font-weight:800;
+  padding:2px 8px;min-width:22px;
+}
+.review-btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- seleção de modo ---------- */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode{
+  border:2px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center;
+  background:var(--panel-2);transition:border-color .15s,transform .12s;
+}
+.mode:active{transform:scale(.96)}
+.mode .md-ico{font-size:24px}
+.mode .md-name{font-family:var(--font-display);font-weight:800;font-size:14px;margin-top:4px}
+.mode .md-desc{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+.mode.sel{border-color:var(--honey);background:linear-gradient(180deg,rgba(245,179,1,.14),rgba(245,179,1,.05))}
+.mode:disabled{opacity:.4;cursor:not-allowed}
+.mode-warn{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.4}
+
+/* ---------- botão principal ---------- */
+.cta{
+  width:100%;padding:17px;border-radius:16px;font-size:17px;font-weight:800;
+  font-family:var(--font-display);letter-spacing:.4px;color:#1c1505;
+  background:linear-gradient(160deg,var(--honey-2),var(--honey));
+  box-shadow:0 6px 20px rgba(245,179,1,.28),inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .12s,box-shadow .15s;margin-top:4px;
+}
+.cta:active{transform:scale(.97)}
+.cta:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.cta.secondary{
+  background:var(--panel-2);color:var(--cream);border:1px solid var(--line);box-shadow:none;
+}
+
+/* ---------- medalhas ---------- */
+.medals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.medal{
+  border:1px solid var(--line);border-radius:14px;padding:10px 4px;text-align:center;
+  background:var(--panel-2);
+}
+.medal .m-ico{font-size:24px;display:block}
+.medal .m-name{font-size:10px;font-weight:700;margin-top:4px;line-height:1.2}
+.medal .m-desc{font-size:9px;color:var(--muted);line-height:1.25;margin-top:2px}
+.medal.locked{opacity:.35;filter:grayscale(1)}
+.medal.fresh{animation:medalpop .5s ease}
+@keyframes medalpop{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* ---------- sessão ---------- */
+.session-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.pill{
+  background:var(--panel);border:1px solid var(--line);border-radius:999px;
+  padding:7px 13px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;
+}
+.pill .flame{filter:grayscale(1);opacity:.4}
+.pill.hot .flame{filter:none;opacity:1}
+.progressbar{height:6px;background:var(--panel-2);border-radius:99px;overflow:hidden;margin-bottom:16px}
+.progressbar i{display:block;height:100%;background:linear-gradient(90deg,var(--honey-deep),var(--honey-2));border-radius:99px;transition:width .35s ease}
+
+/* palco da palavra (hexágono) */
+.stage{text-align:center;padding:8px 0 4px}
+.hexstage{
+  width:150px;height:168px;margin:0 auto;display:grid;place-items:center;
+  background:linear-gradient(165deg,var(--honey-2),var(--honey-deep));
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  color:#1c1505;transition:transform .15s;user-select:none;
+}
+.hexstage:active{transform:scale(.95)}
+.hexstage .hx-ico{font-size:44px;line-height:1}
+.hexstage .hx-lbl{font-size:12px;font-weight:800;letter-spacing:1px;margin-top:4px}
+.hexstage.speaking{animation:pulse 1s ease infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+.stage-hint{color:var(--muted);font-size:12.5px;margin-top:10px}
+.wordmeta{font-size:12px;font-weight:800;letter-spacing:2px;color:var(--honey);text-transform:uppercase;margin-bottom:10px}
+
+/* botões de áudio */
+.audio-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 6px}
+.audio-btn{
+  padding:13px 8px;border-radius:13px;background:var(--panel);border:1px solid var(--line);
+  font-size:13.5px;font-weight:700;color:var(--cream);transition:transform .12s,background .15s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.audio-btn:active{transform:scale(.95);background:var(--panel-2)}
+.audio-btn.wide{grid-column:1 / -1}
+
+/* ---------- resposta: digitação ---------- */
+.answer-area{margin-top:12px}
+.spell-input{
+  width:100%;padding:16px;border-radius:14px;border:2px solid var(--line);
+  background:var(--panel-2);color:var(--cream);font-family:var(--font-mono);
+  font-size:22px;letter-spacing:4px;text-align:center;font-weight:700;
+}
+.spell-input::placeholder{letter-spacing:0;font-family:var(--font-body);font-size:14px;color:var(--muted);font-weight:500}
+.spell-input:focus{border-color:var(--honey)}
+
+/* ---------- resposta: soletração verbal ---------- */
+.mic-btn{
+  width:100%;padding:15px;border-radius:14px;font-size:15px;font-weight:800;
+  background:var(--panel-2);border:2px solid var(--line);color:var(--cream);
+  display:flex;align-items:center;justify-content:center;gap:9px;transition:border-color .2s;
+}
+.mic-btn.listening{border-color:var(--bad);background:linear-gradient(180deg,rgba(229,96,76,.16),var(--panel-2))}
+.mic-btn.listening .dot{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.letterboard{
+  min-height:74px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;
+  padding:12px;margin-top:10px;border-radius:14px;background:var(--panel-2);border:1px dashed var(--line);
+}
+.letterboard .empty{color:var(--muted);font-size:13px}
+.interim{min-height:18px;text-align:center;color:var(--muted);font-size:12px;font-style:italic;margin-top:6px}
+.verbal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+
+/* tiles hexagonais de letras (assinatura visual) */
+.tile{
+  width:38px;height:43px;display:grid;place-items:center;flex:0 0 auto;
+  font-family:var(--font-mono);font-weight:800;font-size:19px;text-transform:uppercase;
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  background:linear-gradient(165deg,var(--honey-2),var(--honey-deep));color:#1c1505;
+  animation:tilein .18s ease;
+}
+@keyframes tilein{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.tile.ok{background:linear-gradient(165deg,#9FE294,var(--ok));color:#10240D}
+.tile.bad{background:linear-gradient(165deg,#F2907F,var(--bad));color:#2B0C07}
+.tile.missing{background:var(--panel-2);border:2px dashed var(--bad);color:var(--bad);clip-path:none;border-radius:9px;font-size:15px}
+.tile.small{width:30px;height:34px;font-size:15px}
+
+/* ---------- feedback ---------- */
+.feedback{margin-top:16px;border-radius:var(--radius);padding:18px;animation:fbin .3s ease}
+@keyframes fbin{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.feedback.good{background:linear-gradient(180deg,rgba(125,200,115,.16),var(--panel));border:1px solid var(--ok-deep)}
+.feedback.bad{background:linear-gradient(180deg,rgba(229,96,76,.14),var(--panel));border:1px solid var(--bad-deep)}
+.feedback.retry{background:linear-gradient(180deg,rgba(245,179,1,.12),var(--panel));border:1px solid var(--line)}
+.fb-msg{font-size:16px;font-weight:800;font-family:var(--font-display);line-height:1.35}
+.fb-sub{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
+.fb-points{font-size:14px;font-weight:800;color:var(--honey-2);margin-top:6px}
+.fb-block{margin-top:14px}
+.fb-block .lbl{font-size:10.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tiles-row{display:flex;flex-wrap:wrap;gap:5px}
+.wordinfo{
+  margin-top:14px;padding:12px;border-radius:12px;background:var(--panel-2);
+  font-size:13.5px;line-height:1.55;
+}
+.wordinfo b{color:var(--honey-2)}
+.fb-actions{margin-top:14px;display:grid;gap:8px}
+
+/* ---------- resultado ---------- */
+.result-hero{text-align:center;padding:10px 0 6px}
+.result-hero .big{font-family:var(--font-display);font-size:52px;font-weight:800;color:var(--honey-2);line-height:1}
+.result-hero .big span{font-size:18px;color:var(--muted)}
+.result-hero .newrec{
+  display:inline-block;margin-top:8px;background:var(--honey);color:#1c1505;
+  font-weight:800;font-size:12px;padding:4px 12px;border-radius:999px;letter-spacing:.5px;
+  animation:medalpop .5s ease;
+}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.stat{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat .v{font-family:var(--font-display);font-size:24px;font-weight:800}
+.stat .k{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.unlocked{margin-top:14px}
+.unlocked .medal{animation:medalpop .5s ease}
+
+/* ---------- confete ---------- */
+.confetti{
+  position:fixed;top:-20px;z-index:99;pointer-events:none;
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  animation:fall linear forwards;
+}
+@keyframes fall{
+  to{transform:translateY(110vh) rotate(720deg);opacity:.15}
+}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(30px);
+  background:var(--panel-2);border:1px solid var(--honey);color:var(--cream);
+  padding:12px 18px;border-radius:14px;font-size:14px;font-weight:700;opacity:0;
+  transition:all .3s ease;z-index:100;max-width:88vw;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.5);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (min-width:480px){
+  .brand h1{font-size:22px}
+  .medals{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== CABEÇALHO ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="hexlogo">🐝</div>
+      <h1>Spelling Bee<small>Treino de soletração</small></h1>
+    </div>
+    <button class="iconbtn" id="muteBtn" title="Som ligado/desligado" aria-label="Alternar som">🔔</button>
+  </header>
+
+  <!-- ===================== TELA INICIAL ===================== -->
+  <main id="screenHome">
+    <div class="card record">
+      <div>
+        <div class="section-label">Recorde</div>
+        <div class="pts"><span id="homeRecord">0</span><span>pts</span></div>
+      </div>
+      <div style="font-size:40px">🏅</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">1 · Escolha o nível</div>
+      <div class="levels">
+        <button class="level sel" data-level="easy">
+          <div class="lv-ico">🌼</div><div class="lv-name">Easy</div>
+          <div class="lv-desc">4–6 letras<br>10 pts</div>
+        </button>
+        <button class="level" data-level="medium">
+          <div class="lv-ico">🍯</div><div class="lv-name">Medium</div>
+          <div class="lv-desc">6–9 letras<br>20 pts</div>
+        </button>
+        <button class="level" data-level="hard">
+          <div class="lv-ico">👑</div><div class="lv-name">Hard</div>
+          <div class="lv-desc">8+ letras<br>30 pts</div>
+        </button>
+      </div>
+      <button class="review-btn" data-level="review" id="reviewBtn">
+        📚 Revisão de Erros <span class="count" id="reviewCount">0</span>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="section-label">2 · Como você quer responder?</div>
+      <div class="modes">
+        <button class="mode sel" data-mode="type">
+          <div class="md-ico">⌨️</div><div class="md-name">Digitação</div>
+          <div class="md-desc">Escreva a palavra</div>
+        </button>
+        <button class="mode" data-mode="voice" id="voiceModeBtn">
+          <div class="md-ico">🎙️</div><div class="md-name">Soletração Verbal</div>
+          <div class="md-desc">Fale letra por letra</div>
+        </button>
+      </div>
+      <div class="mode-warn hidden" id="voiceWarn">
+        ⚠️ Seu navegador não suporta reconhecimento de voz. Para usar a Soletração Verbal, abra este arquivo no <b>Google Chrome</b>.
+      </div>
+    </div>
+
+    <button class="cta" id="startBtn">🐝 Começar sessão (10 palavras)</button>
+
+    <div class="card" style="margin-top:14px">
+      <div class="section-label">Galeria de medalhas</div>
+      <div class="medals" id="medalGallery"></div>
+    </div>
+  </main>
+
+  <!-- ===================== TELA DE SESSÃO ===================== -->
+  <main id="screenSession" class="hidden">
+    <div class="session-top">
+      <button class="iconbtn" id="quitBtn" title="Voltar ao início" aria-label="Sair da sessão">🏠</button>
+      <div class="pill" id="progressPill">Palavra 1/10</div>
+      <div class="pill" id="scorePill">⭐ 0</div>
+      <div class="pill" id="streakPill"><span class="flame">🔥</span><span id="streakNum">0</span></div>
+    </div>
+    <div class="progressbar"><i id="progressFill" style="width:0%"></i></div>
+
+    <div class="card">
+      <div class="stage">
+        <div class="wordmeta" id="wordMeta">Easy · Palavra 1</div>
+        <button class="hexstage" id="playHex" aria-label="Ouvir a palavra">
+          <div><div class="hx-ico">🔊</div><div class="hx-lbl">OUVIR</div></div>
+        </button>
+        <div class="stage-hint">Toque no favo para ouvir a palavra. Ouça quantas vezes quiser — sem perder pontos!</div>
+      </div>
+      <div class="audio-row">
+        <button class="audio-btn" id="btnRepeat">🔊 Ouvir novamente</button>
+        <button class="audio-btn" id="btnSlow">🐢 Ouvir devagar</button>
+        <button class="audio-btn wide" id="btnSentence">💬 Usar em uma frase</button>
+      </div>
+
+      <!-- Resposta por digitação -->
+      <div class="answer-area" id="typeArea">
+        <input class="spell-input" id="spellInput" type="text" inputmode="latin"
+               placeholder="Digite a palavra em inglês…"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="fb-actions" style="margin-top:10px">
+          <button class="cta" id="btnSubmitType">Confirmar ✔</button>
+        </div>
+      </div>
+
+      <!-- Resposta por soletração verbal -->
+      <div class="answer-area hidden" id="voiceArea">
+        <button class="mic-btn" id="micBtn"><span class="dot" style="display:none"></span>🎙️ Começar a soletrar</button>
+        <div class="letterboard" id="letterBoard"><span class="empty">As letras que você falar aparecem aqui…</span></div>
+        <div class="interim" id="interimText"></div>
+        <div class="verbal-actions">
+          <button class="audio-btn" id="btnBackspace">⬅ Voltar</button>
+          <button class="audio-btn" id="btnClear">🗑 Limpar</button>
+        </div>
+        <div class="fb-actions" style="margin-top:10px">
+          <button class="cta" id="btnSubmitVoice">Terminei ✔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel de feedback -->
+    <div class="feedback hidden" id="feedbackPanel">
+      <div class="fb-msg" id="fbMsg"></div>
+      <div class="fb-sub" id="fbSub"></div>
+      <div class="fb-points" id="fbPoints"></div>
+      <div class="fb-block hidden" id="fbYours">
+        <div class="lbl">Sua resposta</div>
+        <div class="tiles-row" id="fbYoursTiles"></div>
+      </div>
+      <div class="fb-block hidden" id="fbCorrect">
+        <div class="lbl">Palavra correta</div>
+        <div class="tiles-row" id="fbCorrectTiles"></div>
+      </div>
+      <div class="wordinfo hidden" id="fbInfo"></div>
+      <div class="fb-actions">
+        <button class="cta hidden" id="btnRetry">🎧 Tentar mais uma vez</button>
+        <button class="cta hidden" id="btnNext">Próxima palavra ➜</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================== TELA DE RESULTADO ===================== -->
+  <main id="screenResult" class="hidden">
+    <div class="card">
+      <div class="result-hero">
+        <div class="section-label" style="text-align:center">Fim da sessão</div>
+        <div class="big"><span id="resScore">0</span> <span>pts</span></div>
+        <div class="newrec hidden" id="newRecordBadge">🏅 NOVO RECORDE!</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="v" id="resPercent">0%</div><div class="k">de acerto</div></div>
+        <div class="stat"><div class="v" id="resStreak">0</div><div class="k">melhor streak</div></div>
+        <div class="stat"><div class="v" id="resHits">0</div><div class="k">acertos</div></div>
+        <div class="stat"><div class="v" id="resErrors">0</div><div class="k">erros</div></div>
+      </div>
+      <div class="unlocked hidden" id="resUnlocked">
+        <div class="section-label" style="margin-top:16px">Medalhas desbloqueadas 🎉</div>
+        <div class="medals" id="resMedalRow"></div>
+      </div>
+    </div>
+    <div style="display:grid;gap:10px">
+      <button class="cta" id="btnPlayAgain">🔁 Jogar de novo</button>
+      <button class="cta secondary hidden" id="btnGoReview">📚 Revisar minhas palavras erradas</button>
+      <button class="cta secondary" id="btnGoHome">🏠 Voltar ao início</button>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   BANCO DE PALAVRAS
+   Estrutura: { word, definition (inglês A2/B1), translation (pt-BR), sentence }
+   ➜ Para acrescentar palavras da lista oficial do concurso,
+     basta adicionar novos objetos no nível desejado.
+   ============================================================ */
+const WORDS = {
+  easy: [
+    {word:"house", definition:"a building where people live", translation:"casa", sentence:"My house has a red door."},
+    {word:"water", definition:"the clear liquid that we drink", translation:"água", sentence:"Please drink some water."},
+    {word:"happy", definition:"feeling good and glad", translation:"feliz", sentence:"She is very happy today."},
+    {word:"school", definition:"a place where students learn", translation:"escola", sentence:"I go to school every morning."},
+    {word:"friend", definition:"a person you like and trust", translation:"amigo, amiga", sentence:"My best friend lives near me."},
+    {word:"apple", definition:"a round red or green fruit", translation:"maçã", sentence:"I eat an apple every day."},
+    {word:"table", definition:"furniture with a flat top and legs", translation:"mesa", sentence:"The book is on the table."},
+    {word:"chair", definition:"a seat for one person", translation:"cadeira", sentence:"Please sit on this chair."},
+    {word:"music", definition:"sounds made to be enjoyed", translation:"música", sentence:"We listen to music together."},
+    {word:"green", definition:"the color of grass", translation:"verde", sentence:"Her dress is green."},
+    {word:"sunny", definition:"with a lot of sunshine", translation:"ensolarado", sentence:"It is a sunny day."},
+    {word:"dance", definition:"to move your body to music", translation:"dançar", sentence:"They love to dance at parties."},
+    {word:"smile", definition:"a happy expression on your face", translation:"sorriso", sentence:"Your smile is beautiful."},
+    {word:"bread", definition:"a common food made from flour", translation:"pão", sentence:"We buy fresh bread every day."},
+    {word:"dream", definition:"pictures in your mind when you sleep", translation:"sonho", sentence:"I had a strange dream last night."},
+    {word:"light", definition:"brightness that lets us see", translation:"luz", sentence:"Please turn on the light."},
+    {word:"night", definition:"the dark part of the day", translation:"noite", sentence:"Stars shine at night."},
+    {word:"beach", definition:"sandy land next to the sea", translation:"praia", sentence:"We played at the beach."},
+    {word:"plant", definition:"a living thing like a flower or a tree", translation:"planta", sentence:"This plant needs water."},
+    {word:"tiger", definition:"a big wild cat with stripes", translation:"tigre", sentence:"The tiger runs very fast."},
+    {word:"money", definition:"what we use to buy things", translation:"dinheiro", sentence:"I saved my money for a game."},
+    {word:"paper", definition:"thin material used for writing", translation:"papel", sentence:"Write your name on the paper."},
+    {word:"phone", definition:"a device used to call people", translation:"telefone", sentence:"My phone is charging."},
+    {word:"party", definition:"a fun event with friends", translation:"festa", sentence:"The party starts at eight."},
+    {word:"fruit", definition:"food like apples and bananas", translation:"fruta", sentence:"Fruit is good for your health."},
+    {word:"cloud", definition:"a white or gray shape in the sky", translation:"nuvem", sentence:"That cloud looks like a dog."},
+    {word:"horse", definition:"a large animal that people can ride", translation:"cavalo", sentence:"The horse jumped over the fence."},
+    {word:"queen", definition:"a woman who rules a country", translation:"rainha", sentence:"The queen wore a golden crown."},
+    {word:"river", definition:"water that flows to the sea", translation:"rio", sentence:"We swam in the river."},
+    {word:"sleep", definition:"to rest with your eyes closed", translation:"dormir", sentence:"Babies sleep many hours."},
+    {word:"small", definition:"little in size", translation:"pequeno", sentence:"The mouse is very small."},
+    {word:"sweet", definition:"tasting like sugar", translation:"doce", sentence:"This cake is too sweet."},
+    {word:"watch", definition:"to look at something for some time", translation:"assistir; relógio de pulso", sentence:"We watch movies on Friday."},
+    {word:"world", definition:"the Earth and everything on it", translation:"mundo", sentence:"I want to travel the world."},
+    {word:"young", definition:"not old", translation:"jovem", sentence:"My brother is still young."},
+    {word:"lemon", definition:"a yellow fruit with a sour taste", translation:"limão", sentence:"Add some lemon to the juice."},
+    {word:"magic", definition:"special power in stories and shows", translation:"magia", sentence:"The show was full of magic."},
+    {word:"ocean", definition:"a very large sea", translation:"oceano", sentence:"Whales live in the ocean."},
+    {word:"pizza", definition:"an Italian food with cheese on top", translation:"pizza", sentence:"We ordered pizza tonight."},
+    {word:"story", definition:"a tale that someone tells", translation:"história", sentence:"Grandma told us a funny story."}
+  ],
+  medium: [
+    {word:"beautiful", definition:"very pretty; nice to look at", translation:"bonito, lindo", sentence:"The sunset is beautiful."},
+    {word:"necessary", definition:"needed; something that must happen", translation:"necessário", sentence:"Sleep is necessary for good health."},
+    {word:"tomorrow", definition:"the day after today", translation:"amanhã", sentence:"The test is tomorrow."},
+    {word:"different", definition:"not the same", translation:"diferente", sentence:"These two shoes are different."},
+    {word:"business", definition:"buying and selling; a company", translation:"negócio, empresa", sentence:"Her business is growing fast."},
+    {word:"calendar", definition:"a chart that shows days and months", translation:"calendário", sentence:"Mark the date on the calendar."},
+    {word:"birthday", definition:"the day of the year you were born", translation:"aniversário", sentence:"Her birthday is in July."},
+    {word:"chocolate", definition:"a sweet brown food", translation:"chocolate", sentence:"I love hot chocolate in winter."},
+    {word:"computer", definition:"a machine used for work and games", translation:"computador", sentence:"The computer is very slow today."},
+    {word:"dangerous", definition:"able to hurt or harm you", translation:"perigoso", sentence:"That road is dangerous at night."},
+    {word:"delicious", definition:"very good to eat", translation:"delicioso", sentence:"The soup is delicious."},
+    {word:"elephant", definition:"a very big gray animal with a trunk", translation:"elefante", sentence:"The elephant has big ears."},
+    {word:"exercise", definition:"activity that keeps your body strong", translation:"exercício", sentence:"Exercise keeps you healthy."},
+    {word:"favorite", definition:"the one you like the most", translation:"favorito", sentence:"Blue is my favorite color."},
+    {word:"grateful", definition:"feeling thankful", translation:"grato, agradecido", sentence:"I am grateful for your help."},
+    {word:"hospital", definition:"a place that helps sick people", translation:"hospital", sentence:"The doctor works at the hospital."},
+    {word:"important", definition:"with great value or meaning", translation:"importante", sentence:"This meeting is very important."},
+    {word:"interest", definition:"wanting to know more about something", translation:"interesse", sentence:"She has an interest in art."},
+    {word:"language", definition:"the words people use to speak", translation:"língua, idioma", sentence:"English is a global language."},
+    {word:"library", definition:"a place full of books to read", translation:"biblioteca", sentence:"We study at the library."},
+    {word:"medicine", definition:"something you take to get better", translation:"remédio, medicina", sentence:"Take your medicine twice a day."},
+    {word:"mountain", definition:"very high land, higher than a hill", translation:"montanha", sentence:"We climbed the mountain slowly."},
+    {word:"neighbor", definition:"a person who lives next to you", translation:"vizinho", sentence:"Our neighbor is very friendly."},
+    {word:"practice", definition:"doing something many times to improve", translation:"praticar; prática", sentence:"Practice makes perfect."},
+    {word:"question", definition:"something you ask", translation:"pergunta", sentence:"May I ask a question?"},
+    {word:"remember", definition:"to keep something in your mind", translation:"lembrar", sentence:"Remember to call me later."},
+    {word:"sandwich", definition:"bread with food inside it", translation:"sanduíche", sentence:"I made a cheese sandwich."},
+    {word:"schedule", definition:"a plan of times and activities", translation:"cronograma, horário", sentence:"Check the class schedule."},
+    {word:"scissors", definition:"a tool used for cutting paper", translation:"tesoura", sentence:"Cut the paper with scissors."},
+    {word:"separate", definition:"apart; not together", translation:"separado; separar", sentence:"Keep the two files separate."},
+    {word:"shoulder", definition:"the part of the body next to your neck", translation:"ombro", sentence:"He carried the bag on his shoulder."},
+    {word:"surprise", definition:"something you did not expect", translation:"surpresa", sentence:"The gift was a big surprise."},
+    {word:"together", definition:"with each other", translation:"juntos", sentence:"We always study together."},
+    {word:"umbrella", definition:"something that protects you from rain", translation:"guarda-chuva", sentence:"Take an umbrella today."},
+    {word:"vacation", definition:"time away from work or school", translation:"férias", sentence:"Our vacation starts in June."},
+    {word:"vegetable", definition:"a plant used as food, like a carrot", translation:"legume, verdura", sentence:"Eat a vegetable with every meal."},
+    {word:"weather", definition:"the sun, rain and wind outside", translation:"tempo, clima", sentence:"The weather is nice today."},
+    {word:"wonderful", definition:"extremely good", translation:"maravilhoso", sentence:"We had a wonderful trip."},
+    {word:"yesterday", definition:"the day before today", translation:"ontem", sentence:"It rained a lot yesterday."},
+    {word:"knowledge", definition:"the things that you know", translation:"conhecimento", sentence:"Books give us knowledge."}
+  ],
+  hard: [
+    {word:"rhythm", definition:"a repeated pattern of sound or movement", translation:"ritmo", sentence:"The dancers follow the rhythm of the drums."},
+    {word:"conscience", definition:"the inner feeling of right and wrong", translation:"consciência", sentence:"His conscience would not let him lie."},
+    {word:"embarrass", definition:"to make someone feel shy or ashamed", translation:"envergonhar, constranger", sentence:"Please do not embarrass me in class."},
+    {word:"questionnaire", definition:"a written list of questions to answer", translation:"questionário", sentence:"Fill in this questionnaire about your habits."},
+    {word:"mischievous", definition:"playful in a slightly naughty way", translation:"travesso, levado", sentence:"The mischievous cat hid my keys."},
+    {word:"bureaucracy", definition:"official rules and paperwork of institutions", translation:"burocracia", sentence:"The bureaucracy slowed the whole process."},
+    {word:"accommodate", definition:"to provide space or adapt to someone", translation:"acomodar", sentence:"The hotel can accommodate two hundred guests."},
+    {word:"definitely", definition:"for sure; without any doubt", translation:"definitivamente, com certeza", sentence:"I will definitely come to your party."},
+    {word:"restaurant", definition:"a place where you pay to eat meals", translation:"restaurante", sentence:"We ate at a new restaurant downtown."},
+    {word:"privilege", definition:"a special right or advantage", translation:"privilégio", sentence:"Meeting the author was a privilege."},
+    {word:"occurrence", definition:"something that happens; an event", translation:"ocorrência", sentence:"Rain is a common occurrence here."},
+    {word:"perseverance", definition:"continuing to try even when it is hard", translation:"perseverança", sentence:"Her perseverance helped her win the prize."},
+    {word:"pronunciation", definition:"the way a word is said out loud", translation:"pronúncia", sentence:"His pronunciation is very clear."},
+    {word:"maintenance", definition:"keeping something in good condition", translation:"manutenção", sentence:"The elevator is under maintenance."},
+    {word:"acquaintance", definition:"a person you know, but not a close friend", translation:"conhecido", sentence:"He is an acquaintance from my old school."},
+    {word:"entrepreneur", definition:"a person who starts their own business", translation:"empreendedor", sentence:"The young entrepreneur opened a bakery."},
+    {word:"silhouette", definition:"a dark shape seen against the light", translation:"silhueta", sentence:"We saw the silhouette of a bird at sunset."},
+    {word:"lieutenant", definition:"an officer rank in the army or the police", translation:"tenente", sentence:"The lieutenant gave the order to march."},
+    {word:"playwright", definition:"a person who writes plays for the theater", translation:"dramaturgo", sentence:"Shakespeare was a famous playwright."},
+    {word:"chauffeur", definition:"a person whose job is to drive a car", translation:"motorista particular", sentence:"The chauffeur opened the car door."},
+    {word:"connoisseur", definition:"an expert who knows a subject very well", translation:"conhecedor, especialista", sentence:"He is a connoisseur of fine coffee."},
+    {word:"catastrophe", definition:"a sudden and terrible disaster", translation:"catástrofe", sentence:"The flood was a catastrophe for the town."},
+    {word:"psychology", definition:"the study of the mind and behavior", translation:"psicologia", sentence:"She wants to study psychology."},
+    {word:"pneumonia", definition:"a serious illness of the lungs", translation:"pneumonia", sentence:"He stayed in bed with pneumonia."},
+    {word:"handkerchief", definition:"a small cloth for wiping your nose", translation:"lenço", sentence:"She waved a white handkerchief."},
+    {word:"miscellaneous", definition:"made of many different kinds of things", translation:"diversos, variados", sentence:"The box holds miscellaneous items."},
+    {word:"subtle", definition:"not obvious; delicate and hard to notice", translation:"sutil", sentence:"There is a subtle difference between the colors."},
+    {word:"receipt", definition:"a paper that shows you paid for something", translation:"recibo, comprovante", sentence:"Keep the receipt from the store."},
+    {word:"foreign", definition:"from another country", translation:"estrangeiro", sentence:"She speaks two foreign languages."},
+    {word:"colonel", definition:"a high officer in the army", translation:"coronel", sentence:"The colonel led the soldiers with courage."},
+    {word:"exaggerate", definition:"to say something is bigger or better than it really is", translation:"exagerar", sentence:"Do not exaggerate the story."},
+    {word:"immediately", definition:"right now; without waiting", translation:"imediatamente", sentence:"Call me immediately after the game."},
+    {word:"environment", definition:"the natural world around us", translation:"meio ambiente", sentence:"We must protect the environment."},
+    {word:"parliament", definition:"the group that makes the laws of a country", translation:"parlamento", sentence:"The parliament voted on the new law."},
+    {word:"vengeance", definition:"punishment given in return for harm", translation:"vingança", sentence:"The hero did not want vengeance."},
+    {word:"symmetry", definition:"being exactly the same on both sides", translation:"simetria", sentence:"The butterfly shows perfect symmetry."},
+    {word:"labyrinth", definition:"a place full of confusing paths; a maze", translation:"labirinto", sentence:"The old garden was a green labyrinth."},
+    {word:"gorgeous", definition:"extremely beautiful", translation:"deslumbrante, lindo", sentence:"The view from the top was gorgeous."},
+    {word:"awkward", definition:"uncomfortable or clumsy", translation:"desajeitado; constrangedor", sentence:"There was an awkward silence in the room."},
+    {word:"jewelry", definition:"rings, necklaces and similar decorative objects", translation:"joias", sentence:"She keeps her jewelry in a small box."}
+  ]
+};
+
+/* Pontos-base por nível */
+const BASE_POINTS = {easy:10, medium:20, hard:30};
+
+/* Medalhas disponíveis */
+const MEDALS = [
+  {id:"first",   icon:"🐝", name:"Primeira Abelha",   desc:"Acerte sua 1ª palavra"},
+  {id:"streak5", icon:"🔥", name:"Em Chamas",          desc:"Streak de 5 acertos"},
+  {id:"hard10",  icon:"🏆", name:"Campeã Hard",        desc:"10 acertos no Hard"},
+  {id:"perfect", icon:"💯", name:"Sessão Perfeita",    desc:"100% em uma sessão"},
+  {id:"review",  icon:"📚", name:"Superação",          desc:"Complete uma Revisão de Erros"},
+  {id:"score300",icon:"⭐", name:"Estrela da Colmeia", desc:"300+ pts em uma sessão"},
+  {id:"total50", icon:"🎓", name:"Vocabulário de Ouro",desc:"50 acertos no total"},
+  {id:"earHard", icon:"👂", name:"Ouvido Afiado",      desc:"Acerte uma Hard de primeira"}
+];
+
+/* Frases de feedback (variadas, sorteadas sem repetição imediata) */
+const PRAISE = [
+  "Perfeito! Soletração impecável! 🐝",
+  "Acertou em cheio! Você está voando!",
+  "Isso aí! A rainha da colmeia aprovou! 👑",
+  "Mandou muito bem! Letra por letra, sem erro!",
+  "Excelente! Essa palavra é sua!",
+  "Uau! Nem os jurados do concurso soletrariam melhor!",
+  "Show! Seu inglês está cada vez mais afiado!",
+  "Brilhou! Mais uma para a coleção de acertos!",
+  "Certíssimo! Confiança de campeã!",
+  "Na mosca! Continue nesse ritmo! 🎯"
+];
+const RETRY_MSGS = [
+  "Quase! Respire fundo, ouça de novo e tente mais uma vez.",
+  "Não foi dessa vez — mas você tem mais uma chance! Ouça com atenção.",
+  "Hmm, ainda não. Que tal ouvir devagar antes de tentar de novo?",
+  "Foi por pouco! Escute a palavra outra vez e capriche.",
+  "Ainda não foi. Dica: peça a frase de exemplo, às vezes ajuda!"
+];
+const MISS_MSGS = [
+  "Não foi dessa vez, mas agora você conhece essa palavra!",
+  "Faz parte do treino! Errar hoje é acertar no concurso.",
+  "Essa era difícil mesmo. Ela vai para a sua Revisão de Erros.",
+  "Quase lá! Olhe com calma onde a resposta mudou.",
+  "Anotada! Na próxima revisão, essa palavra não te escapa."
+];
+
+/* ============================================================
+   PERSISTÊNCIA (localStorage) — com proteção contra erros
+   ============================================================ */
+const STORE_KEY = "spellbee_v1";
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ /* localStorage indisponível ou corrompido */ }
+  return {highScore:0, medals:[], wrongWords:[], totalCorrect:0, hardCorrect:0, muted:false};
+}
+function saveStore(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }catch(e){ /* modo privado etc. */ }
+}
+let store = loadStore();
+
+/* ============================================================
+   ÁUDIO (Web Audio API) — efeitos sutis de acerto/erro
+   ============================================================ */
+let audioCtx = null;
+function getCtx(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx = null; }
+  }
+  if(audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, start, dur, type, vol){
+  const ctx = getCtx(); if(!ctx) return;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type||"sine"; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, ctx.currentTime+start);
+  g.gain.exponentialRampToValueAtTime(vol||0.18, ctx.currentTime+start+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+start+dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(ctx.currentTime+start); o.stop(ctx.currentTime+start+dur+0.05);
+}
+function sfxCorrect(){ if(store.muted) return; tone(660,0,.14,"sine",.16); tone(880,.13,.2,"sine",.16); }
+function sfxWrong(){ if(store.muted) return; tone(190,0,.22,"sawtooth",.08); tone(150,.1,.25,"sawtooth",.07); }
+function sfxMedal(){ if(store.muted) return; tone(523,0,.12,"triangle",.15); tone(659,.11,.12,"triangle",.15); tone(784,.22,.12,"triangle",.15); tone(1047,.33,.3,"triangle",.16); }
+function sfxTap(){ if(store.muted) return; tone(520,0,.06,"sine",.06); }
+
+/* ============================================================
+   FALA (Text-to-Speech) — Web Speech API
+   ============================================================ */
+const synth = window.speechSynthesis || null;
+let enVoice = null;
+function pickVoice(){
+  if(!synth) return;
+  const voices = synth.getVoices();
+  if(!voices || !voices.length) return;
+  // 1º: vozes en-US "premium" conhecidas; 2º: qualquer en-US; 3º: qualquer en-*
+  const pref = ["Google US English","Samantha","Microsoft Aria","Microsoft Jenny","Microsoft Zira","Alex"];
+  enVoice =
+    voices.find(v => /en[-_]US/i.test(v.lang) && pref.some(p => v.name.includes(p))) ||
+    voices.find(v => /en[-_]US/i.test(v.lang) && v.localService) ||
+    voices.find(v => /en[-_]US/i.test(v.lang)) ||
+    voices.find(v => /^en/i.test(v.lang)) || null;
+}
+if(synth){
+  pickVoice();
+  synth.onvoiceschanged = pickVoice;
+}
+function speak(text, rate){
+  if(!synth){ showToast("😕 Este navegador não tem voz disponível. Tente o Chrome."); return; }
+  try{
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    if(enVoice) u.voice = enVoice;
+    u.rate = rate || 0.95;
+    u.pitch = 1;
+    const hex = document.getElementById("playHex");
+    u.onstart = () => hex.classList.add("speaking");
+    u.onend = () => hex.classList.remove("speaking");
+    u.onerror = () => hex.classList.remove("speaking");
+    synth.speak(u);
+  }catch(e){ showToast("Não consegui reproduzir o áudio agora. Tente de novo."); }
+}
+
+/* ============================================================
+   RECONHECIMENTO DE VOZ (Soletração Verbal)
+   ============================================================ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let recog = null, listening = false, srProcessed = 0;
+
+/* Mapa robusto: como o reconhecedor costuma transcrever cada letra falada */
+const LETTER_MAP = {
+  a:"a", ay:"a", eh:"a", hey:"a",
+  b:"b", be:"b", bee:"b",
+  c:"c", cee:"c", see:"c", sea:"c", si:"c",
+  d:"d", de:"d", dee:"d",
+  e:"e", ee:"e", ea:"e",
+  f:"f", ef:"f", eff:"f",
+  g:"g", ge:"g", gee:"g", jee:"g",
+  h:"h", aitch:"h", age:"h", ache:"h", each:"h", haitch:"h",
+  i:"i", eye:"i", ai:"i",
+  j:"j", jay:"j", jai:"j", jey:"j",
+  k:"k", kay:"k", cay:"k", ka:"k",
+  l:"l", el:"l", ell:"l", elle:"l",
+  m:"m", em:"m", emme:"m",
+  n:"n", en:"n", enn:"n",
+  o:"o", oh:"o", owe:"o",
+  p:"p", pe:"p", pee:"p", pea:"p",
+  q:"q", cue:"q", queue:"q", kyu:"q", kew:"q",
+  r:"r", ar:"r", are:"r", arr:"r",
+  s:"s", es:"s", ess:"s",
+  t:"t", te:"t", tee:"t", tea:"t",
+  u:"u", you:"u", yu:"u", ew:"u", yew:"u",
+  v:"v", ve:"v", vee:"v",
+  w:"w", doubleu:"w",
+  x:"x", ex:"x", ecks:"x", eks:"x", eggs:"x",
+  y:"y", why:"y", wye:"y", wai:"y",
+  z:"z", zee:"z", zed:"z", ze:"z"
+};
+
+/**
+ * Converte uma transcrição em letras.
+ * Regras especiais:
+ *  - "double u" / "double you" → W (é o nome da letra em inglês)
+ *  - "double" + outra letra   → letra duplicada (convenção de spelling bee)
+ *  - tokens não reconhecidos são ignorados silenciosamente
+ */
+function transcriptToLetters(text){
+  const out = [];
+  const tokens = text.toLowerCase().replace(/[^a-z\s\-']/g," ").split(/[\s\-]+/).filter(Boolean);
+  let pendingDouble = false;
+  for(const tk of tokens){
+    if(tk === "double" || tk === "dobule"){ pendingDouble = true; continue; }
+    let letter = LETTER_MAP[tk] || null;
+    if(pendingDouble){
+      pendingDouble = false;
+      if(tk === "u" || tk === "you" || tk === "yu" || tk === "ew"){ out.push("w"); continue; } // "double u" = W
+      if(letter){ out.push(letter, letter); continue; }
+      continue;
+    }
+    if(letter) out.push(letter);
+  }
+  return out;
+}
+
+function initRecognition(){
+  if(!SR) return null;
+  const r = new SR();
+  r.lang = "en-US";
+  r.continuous = true;
+  r.interimResults = true;
+  r.maxAlternatives = 1;
+  r.onresult = (ev) => {
+    let interim = "";
+    for(let i = srProcessed; i < ev.results.length; i++){
+      const res = ev.results[i];
+      if(res.isFinal){
+        srProcessed = i + 1;
+        const letters = transcriptToLetters(res[0].transcript);
+        if(letters.length){ state.spokenLetters.push(...letters); sfxTap(); renderLetterBoard(); }
+      }else{
+        interim += res[0].transcript;
+      }
+    }
+    document.getElementById("interimText").textContent = interim ? "🎧 " + interim : "";
+  };
+  r.onerror = (ev) => {
+    const msgs = {
+      "not-allowed": "🎙️ Permissão de microfone negada. Clique no cadeado da barra de endereço → Microfone → Permitir.",
+      "service-not-allowed": "🎙️ Serviço de voz bloqueado pelo navegador. Abra a página via https:// ou localhost (não file://).",
+      "network": "🌐 Sem conexão com o serviço de voz. O reconhecimento exige internet ativa.",
+      "audio-capture": "🎙️ Nenhum microfone encontrado ou em uso por outro app.",
+      "no-speech": "🤫 Não ouvi nada. Fale um pouco mais perto do microfone.",
+      "aborted": ""
+    };
+    const m = (ev.error in msgs) ? msgs[ev.error] : ("⚠️ Erro de reconhecimento: " + ev.error);
+    if(ev.error === "not-allowed" || ev.error === "service-not-allowed" || ev.error === "audio-capture"){
+      stopListening();
+    }
+    if(m) showToast(m);
+  };
+  r.onend = () => { if(listening){ try{ srProcessed = 0; r.start(); }catch(e){} } };
+  return r;
+}
+
+function startListening(){
+  if(!SR){ showToast("Reconhecimento de voz indisponível neste navegador."); return; }
+  if(location.protocol === "file:"){
+    showToast("⚠️ O Chrome bloqueia o microfone em arquivos abertos do disco (file://). Abra via http://localhost ou hospede em https:// para usar a soletração verbal.");
+    return;
+  }
+  if(!recog) recog = initRecognition();
+  if(synth) synth.cancel();          // não ouvir a si mesmo
+  srProcessed = 0; listening = true;
+  try{ recog.start(); }catch(e){}
+  const btn = document.getElementById("micBtn");
+  btn.classList.add("listening");
+  btn.querySelector(".dot").style.display = "inline-block";
+  btn.childNodes[1].textContent = "⏸ Parar de ouvir";
+}
+function stopListening(){
+  listening = false;
+  if(recog){ try{ recog.stop(); }catch(e){} }
+  const btn = document.getElementById("micBtn");
+  btn.classList.remove("listening");
+  btn.querySelector(".dot").style.display = "none";
+  btn.childNodes[1].textContent = "🎙️ Começar a soletrar";
+  document.getElementById("interimText").textContent = "";
+}
+
+/* ============================================================
+   ESTADO DA SESSÃO
+   ============================================================ */
+const SESSION_SIZE = 10;
+let selLevel = "easy";
+let selMode  = "type";
+let lastMsg  = {praise:-1, retry:-1, miss:-1};
+
+const state = {
+  level:"easy", mode:"type", queue:[], idx:0,
+  score:0, streak:0, bestStreak:0, hits:0, attempt:1,
+  spokenLetters:[], unlockedThisSession:[], answered:false
+};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickMsg(list, key){
+  let i;
+  do{ i = Math.floor(Math.random()*list.length); }while(list.length>1 && i===lastMsg[key]);
+  lastMsg[key] = i;
+  return list[i];
+}
+
+/* ============================================================
+   NAVEGAÇÃO ENTRE TELAS
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+function show(screen){
+  ["screenHome","screenSession","screenResult"].forEach(s => $(s).classList.add("hidden"));
+  $(screen).classList.remove("hidden");
+  window.scrollTo({top:0});
+}
+function showToast(msg, ms){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove("show"), ms||2600);
+}
+
+/* ============================================================
+   TELA INICIAL
+   ============================================================ */
+function renderHome(){
+  $("homeRecord").textContent = store.highScore;
+  const n = store.wrongWords.length;
+  $("reviewCount").textContent = n;
+  $("reviewBtn").disabled = n === 0;
+  if(n === 0 && selLevel === "review"){ setLevel("easy"); }
+  renderMedals($("medalGallery"), MEDALS, store.medals, true);
+  if(!SR){
+    $("voiceModeBtn").disabled = true;
+    $("voiceWarn").classList.remove("hidden");
+    if(selMode === "voice") setMode("type");
+  }
+  $("muteBtn").textContent = store.muted ? "🔕" : "🔔";
+}
+function renderMedals(el, defs, owned, showLocked){
+  el.innerHTML = "";
+  defs.forEach(m => {
+    const has = owned.includes(m.id);
+    if(!has && !showLocked) return;
+    const d = document.createElement("div");
+    d.className = "medal" + (has ? "" : " locked");
+    d.innerHTML = `<span class="m-ico">${m.icon}</span><div class="m-name">${m.name}</div><div class="m-desc">${m.desc}</div>`;
+    el.appendChild(d);
+  });
+}
+function setLevel(lv){
+  selLevel = lv;
+  document.querySelectorAll("[data-level]").forEach(b => b.classList.toggle("sel", b.dataset.level === lv));
+}
+function setMode(md){
+  selMode = md;
+  document.querySelectorAll("[data-mode]").forEach(b => b.classList.toggle("sel", b.dataset.mode === md));
+}
+
+/* ============================================================
+   FLUXO DA SESSÃO
+   ============================================================ */
+function buildQueue(level){
+  if(level === "review"){
+    // Palavras erradas guardadas: cada item {word, level}
+    const pool = shuffle(store.wrongWords);
+    return pool.slice(0, SESSION_SIZE).map(it => {
+      const src = (WORDS[it.level]||[]).find(w => w.word === it.word);
+      return src ? {...src, level:it.level} : null;
+    }).filter(Boolean);
+  }
+  return shuffle(WORDS[level]).slice(0, SESSION_SIZE).map(w => ({...w, level}));
+}
+
+function startSession(){
+  const queue = buildQueue(selLevel);
+  if(!queue.length){ showToast("Nenhuma palavra disponível para revisar. 🎉"); return; }
+  Object.assign(state, {
+    level:selLevel, mode:selMode, queue, idx:0,
+    score:0, streak:0, bestStreak:0, hits:0, attempt:1,
+    spokenLetters:[], unlockedThisSession:[], answered:false
+  });
+  $("typeArea").classList.toggle("hidden", state.mode !== "type");
+  $("voiceArea").classList.toggle("hidden", state.mode !== "voice");
+  show("screenSession");
+  loadWord(true);
+}
+
+function currentWord(){ return state.queue[state.idx]; }
+
+function loadWord(autoSpeak){
+  state.attempt = 1;
+  state.answered = false;
+  state.spokenLetters = [];
+  stopListening();
+  const total = state.queue.length;
+  const lvName = state.level === "review" ? "Revisão" : state.level.charAt(0).toUpperCase()+state.level.slice(1);
+  $("wordMeta").textContent = `${lvName} · Palavra ${state.idx+1} de ${total}`;
+  $("progressPill").textContent = `Palavra ${state.idx+1}/${total}`;
+  $("progressFill").style.width = `${(state.idx/total)*100}%`;
+  updateScoreUI();
+  $("feedbackPanel").classList.add("hidden");
+  $("spellInput").value = "";
+  renderLetterBoard();
+  if(state.mode === "type"){ $("spellInput").focus(); }
+  if(autoSpeak !== false) speak(currentWord().word);
+}
+
+function updateScoreUI(){
+  $("scorePill").textContent = `⭐ ${state.score}`;
+  $("streakNum").textContent = state.streak;
+  $("streakPill").classList.toggle("hot", state.streak >= 3);
+}
+
+function renderLetterBoard(){
+  const el = $("letterBoard");
+  el.innerHTML = "";
+  if(!state.spokenLetters.length){
+    el.innerHTML = '<span class="empty">As letras que você falar aparecem aqui…</span>';
+    return;
+  }
+  state.spokenLetters.forEach(l => {
+    const t = document.createElement("div");
+    t.className = "tile";
+    t.textContent = l;
+    el.appendChild(t);
+  });
+}
+
+/* ============================================================
+   CORREÇÃO E FEEDBACK
+   ============================================================ */
+function ordinal(n){ return `${n}ª`; }
+
+/* Descreve exatamente onde a resposta divergiu */
+function diffMessage(correct, answer){
+  const c = correct.toLowerCase(), a = answer.toLowerCase();
+  if(a.length === 0) return "Você não digitou nenhuma letra.";
+  let i = 0;
+  while(i < c.length && i < a.length && c[i] === a[i]) i++;
+  if(i === c.length && a.length > c.length)
+    return `Você acertou o início, mas sobraram ${a.length - c.length} letra(s) no final.`;
+  if(i === a.length && c.length > a.length)
+    return `Faltou a letra "${c[i].toUpperCase()}" na ${ordinal(i+1)} posição.`;
+  if(c.length === a.length)
+    return `Você trocou o "${a[i].toUpperCase()}" pelo "${c[i].toUpperCase()}" na ${ordinal(i+1)} letra.`;
+  return `A diferença começa na ${ordinal(i+1)} letra: era "${c[i].toUpperCase()}", você colocou "${(a[i]||"—").toUpperCase()}".`;
+}
+
+/* Gera as fileiras de tiles comparando letra a letra */
+function buildTiles(correct, answer){
+  const c = correct.toLowerCase(), a = answer.toLowerCase();
+  const yours = $("fbYoursTiles"), right = $("fbCorrectTiles");
+  yours.innerHTML = ""; right.innerHTML = "";
+  const maxLen = Math.max(c.length, a.length);
+  const small = maxLen > 9 ? " small" : "";
+  for(let i=0;i<maxLen;i++){
+    const t = document.createElement("div");
+    if(i < a.length){
+      t.className = "tile" + (a[i] === c[i] ? " ok" : " bad") + small;
+      t.textContent = a[i];
+    }else{
+      t.className = "tile missing" + small;
+      t.textContent = "＿";
+      t.title = "letra faltante";
+    }
+    yours.appendChild(t);
+  }
+  for(let i=0;i<c.length;i++){
+    const t = document.createElement("div");
+    t.className = "tile" + small;
+    t.textContent = c[i];
+    right.appendChild(t);
+  }
+}
+
+function submitAnswer(raw){
+  if(state.answered) return;
+  const w = currentWord();
+  const answer = (raw||"").trim().toLowerCase().replace(/[^a-z]/g,"");
+  if(!answer){ showToast("Digite ou soletre a palavra antes de confirmar 😉"); return; }
+  const correct = answer === w.word.toLowerCase();
+  const fb = $("feedbackPanel");
+  fb.classList.remove("hidden","good","bad","retry");
+  $("fbYours").classList.add("hidden");
+  $("fbCorrect").classList.add("hidden");
+  $("fbInfo").classList.add("hidden");
+  $("fbPoints").textContent = "";
+  $("btnRetry").classList.add("hidden");
+  $("btnNext").classList.add("hidden");
+
+  if(correct){
+    state.answered = true;
+    stopListening();
+    const firstTry = state.attempt === 1;
+    state.streak++;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    state.hits++;
+    const base = BASE_POINTS[w.level] || 10;
+    let pts = base;
+    let detail = [`+${base} base`];
+    if(firstTry){ const b = Math.round(base/2); pts += b; detail.push(`+${b} de primeira`); }
+    if(state.streak >= 3){ pts *= 2; detail.push("×2 streak 🔥"); }
+    state.score += pts;
+    store.totalCorrect++;
+    if(w.level === "hard") store.hardCorrect++;
+    // Acertou na revisão? Remove da lista de erros.
+    removeWrongWord(w.word);
+    fb.classList.add("good");
+    $("fbMsg").textContent = pickMsg(PRAISE,"praise");
+    $("fbSub").textContent = firstTry ? "Acerto na primeira tentativa!" : "Acertou na segunda tentativa — persistência vale ouro!";
+    $("fbPoints").textContent = `+${pts} pontos (${detail.join(" · ")})`;
+    showWordReveal(w, answer);
+    sfxCorrect();
+    confetti(state.streak >= 3 ? 80 : 45);
+    checkMedals({firstTryHard: firstTry && w.level === "hard"});
+    saveStore();
+    $("btnNext").classList.remove("hidden");
+    $("btnNext").textContent = state.idx + 1 >= state.queue.length ? "Ver resultado 🏁" : "Próxima palavra ➜";
+    $("btnNext").focus();
+  }else if(state.attempt === 1){
+    // 1ª tentativa errada: NÃO revela a palavra; dá nova chance
+    state.attempt = 2;
+    fb.classList.add("retry");
+    $("fbMsg").textContent = pickMsg(RETRY_MSGS,"retry");
+    $("fbSub").textContent = `Dica: a palavra tem ${w.word.length} letras.`;
+    $("btnRetry").classList.remove("hidden");
+    if(state.mode === "type"){ $("spellInput").value = ""; }
+    state.spokenLetters = [];
+    renderLetterBoard();
+    sfxWrong();
+  }else{
+    // 2ª tentativa errada: revela, corrige letra a letra e guarda para revisão
+    state.answered = true;
+    stopListening();
+    state.streak = 0;
+    fb.classList.add("bad");
+    $("fbMsg").textContent = pickMsg(MISS_MSGS,"miss");
+    $("fbSub").textContent = diffMessage(w.word, answer);
+    buildTiles(w.word, answer);
+    $("fbYours").classList.remove("hidden");
+    $("fbCorrect").classList.remove("hidden");
+    showWordReveal(w, answer, true);
+    addWrongWord(w);
+    sfxWrong();
+    saveStore();
+    $("btnNext").classList.remove("hidden");
+    $("btnNext").textContent = state.idx + 1 >= state.queue.length ? "Ver resultado 🏁" : "Próxima palavra ➜";
+    $("btnNext").focus();
+  }
+  updateScoreUI();
+  fb.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+function showWordReveal(w, answer, skipTiles){
+  if(!skipTiles){
+    buildTiles(w.word, answer);
+    $("fbYours").classList.remove("hidden");
+    $("fbCorrect").classList.remove("hidden");
+  }
+  const info = $("fbInfo");
+  info.classList.remove("hidden");
+  info.innerHTML =
+    `<b>${w.word}</b> — ${w.definition}<br>` +
+    `<b>Tradução:</b> ${w.translation}<br>` +
+    `<b>Exemplo:</b> ${w.sentence}`;
+}
+
+function addWrongWord(w){
+  if(!store.wrongWords.some(it => it.word === w.word)){
+    store.wrongWords.push({word:w.word, level:w.level === "review" ? "easy" : w.level});
+  }
+}
+function removeWrongWord(word){
+  store.wrongWords = store.wrongWords.filter(it => it.word !== word);
+}
+
+/* ============================================================
+   MEDALHAS
+   ============================================================ */
+function unlock(id){
+  if(store.medals.includes(id)) return;
+  store.medals.push(id);
+  state.unlockedThisSession.push(id);
+  const m = MEDALS.find(x => x.id === id);
+  showToast(`${m.icon} Medalha desbloqueada: ${m.name}!`, 3200);
+  sfxMedal();
+  confetti(70);
+}
+function checkMedals(ctx){
+  if(store.totalCorrect >= 1) unlock("first");
+  if(state.streak >= 5) unlock("streak5");
+  if(store.hardCorrect >= 10) unlock("hard10");
+  if(store.totalCorrect >= 50) unlock("total50");
+  if(state.score >= 300) unlock("score300");
+  if(ctx && ctx.firstTryHard) unlock("earHard");
+}
+
+/* ============================================================
+   RESULTADO
+   ============================================================ */
+function nextWord(){
+  if(state.idx + 1 >= state.queue.length){ endSession(); return; }
+  state.idx++;
+  loadWord(true);
+}
+function endSession(){
+  stopListening();
+  if(synth) synth.cancel();
+  const total = state.queue.length;
+  const pct = Math.round((state.hits/total)*100);
+  if(pct === 100 && total >= 5) unlock("perfect");
+  if(state.level === "review") unlock("review");
+  checkMedals();
+  const isRecord = state.score > store.highScore;
+  if(isRecord) store.highScore = state.score;
+  saveStore();
+
+  $("resScore").textContent = state.score;
+  $("resPercent").textContent = pct + "%";
+  $("resStreak").textContent = state.bestStreak;
+  $("resHits").textContent = state.hits;
+  $("resErrors").textContent = total - state.hits;
+  $("newRecordBadge").classList.toggle("hidden", !isRecord);
+  if(isRecord){ sfxMedal(); confetti(120); }
+
+  const un = state.unlockedThisSession;
+  $("resUnlocked").classList.toggle("hidden", un.length === 0);
+  if(un.length){
+    renderMedals($("resMedalRow"), MEDALS.filter(m => un.includes(m.id)), un, false);
+  }
+  $("btnGoReview").classList.toggle("hidden", store.wrongWords.length === 0);
+  show("screenResult");
+}
+
+/* ============================================================
+   CONFETE (CSS/JS puro, em forma de favo 🐝)
+   ============================================================ */
+function confetti(n){
+  const colors = ["#F5B301","#FFCE45","#B57F00","#F7EEDC","#3E3219"];
+  for(let i=0;i<n;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    const size = 6 + Math.random()*8;
+    c.style.width = size+"px";
+    c.style.height = (size*1.12)+"px";
+    c.style.left = (Math.random()*100)+"vw";
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration = (1.6 + Math.random()*1.8)+"s";
+    c.style.animationDelay = (Math.random()*0.4)+"s";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4200);
+  }
+}
+
+/* ============================================================
+   EVENTOS
+   ============================================================ */
+document.querySelectorAll("[data-level]").forEach(b =>
+  b.addEventListener("click", () => { if(!b.disabled){ setLevel(b.dataset.level); sfxTap(); } }));
+document.querySelectorAll("[data-mode]").forEach(b =>
+  b.addEventListener("click", () => { if(!b.disabled){ setMode(b.dataset.mode); sfxTap(); } }));
+
+$("startBtn").addEventListener("click", startSession);
+$("quitBtn").addEventListener("click", () => {
+  stopListening(); if(synth) synth.cancel();
+  renderHome(); show("screenHome");
+});
+$("muteBtn").addEventListener("click", () => {
+  store.muted = !store.muted; saveStore();
+  $("muteBtn").textContent = store.muted ? "🔕" : "🔔";
+  showToast(store.muted ? "Efeitos sonoros desligados" : "Efeitos sonoros ligados", 1500);
+});
+
+$("playHex").addEventListener("click", () => speak(currentWord().word));
+$("btnRepeat").addEventListener("click", () => speak(currentWord().word));
+$("btnSlow").addEventListener("click", () => speak(currentWord().word, 0.6));
+$("btnSentence").addEventListener("click", () => speak(currentWord().sentence, 0.9));
+
+$("btnSubmitType").addEventListener("click", () => submitAnswer($("spellInput").value));
+$("spellInput").addEventListener("keydown", (e) => {
+  if(e.key === "Enter"){ e.preventDefault(); submitAnswer($("spellInput").value); }
+});
+
+$("micBtn").addEventListener("click", () => listening ? stopListening() : startListening());
+$("btnBackspace").addEventListener("click", () => { state.spokenLetters.pop(); renderLetterBoard(); sfxTap(); });
+$("btnClear").addEventListener("click", () => { state.spokenLetters = []; renderLetterBoard(); sfxTap(); });
+$("btnSubmitVoice").addEventListener("click", () => submitAnswer(state.spokenLetters.join("")));
+
+$("btnRetry").addEventListener("click", () => {
+  $("feedbackPanel").classList.add("hidden");
+  speak(currentWord().word);
+  if(state.mode === "type") $("spellInput").focus();
+});
+$("btnNext").addEventListener("click", nextWord);
+
+$("btnPlayAgain").addEventListener("click", startSession);
+$("btnGoHome").addEventListener("click", () => { renderHome(); show("screenHome"); });
+$("btnGoReview").addEventListener("click", () => { setLevel("review"); startSession(); });
+
+/* Inicialização */
+renderHome();
+</script>
+</body>
+</html>
